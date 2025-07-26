@@ -43,7 +43,6 @@ export default {
     localStorage.setItem('token', data.access_token)
     localStorage.setItem('isAdmin', data.user.isAdmin)
     localStorage.setItem('userId', data.user.userId)
-    localStorage.setItem('name', data.user.name)
 
     // Debug logging
     console.log('Login successful, isAdmin:', data.user.isAdmin)

@@ -1,28 +1,12 @@
 <template>
-  <div class="container my-5" style="max-width: 500px;">
-    <h2 class="text-center mb-4">Sign Up</h2>
-
-    <div class="mb-3">
-      <label class="form-label">Name</label>
-      <input type="text" v-model="name" class="form-control" placeholder="Enter name" />
+    <div>
+        <h> Sign Up</h>
+            <div><label>Name</label><input type="text" v-model="name" placeholder="Enter name"></div>
+            <div><label>Email</label><input type="email" v-model="email" placeholder="Enter email"></div>
+            <div><label>Password</label><input type="password" v-model="password" placeholder="Enter password"></div>
+            <div><button @click="signup">Sign Up</button></div>
+            <p v-if="message">{{ message }}</p>
     </div>
-
-    <div class="mb-3">
-      <label class="form-label">Email</label>
-      <input type="email" v-model="email" class="form-control" placeholder="Enter email" />
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Password</label>
-      <input type="password" v-model="password" class="form-control" placeholder="Enter password" />
-    </div>
-
-    <div class="text-center">
-      <button @click="signup" class="btn btn-dark rounded-pill px-4">Sign Up</button>
-    </div>
-
-    <p v-if="message" class="mt-3 text-center text-danger">{{ message }}</p>
-  </div>
 </template>
 <script>
    export default{

@@ -40,12 +40,6 @@ const router = createRouter({
 
     },
     {
-      path:'/admin/charts',
-      name:'charts',
-      component:()=>import('../views/admin/charts.vue')
-
-    },
-    {
       path: '/:pathMatch(.*)*',
       redirect: '/'
     },
