@@ -25,17 +25,20 @@
       </select>
     </div>
     <div v-if="Object.keys(slotDict).length > 0">
-      <h2 class="text-center">Available Slots</h2>
-      <div v-for="(slots, lot) in slotDict":key="lot" class="mb-4 p-3 border rounded bg-light">
-        <h4 class="mb-3">{{ lot }}:</h4> <button class="btn flex-fill" data-bs-toggle="modal" data-bs-target="#LotModal" @click="viewLot(lot)">View/Edit Lot</button>
-        <button class="btn  flex-fill" @click="deleteLot(lot)">Delete Lot</button>
+      <h2 class="text-center m-3">Available Slots</h2>
+        <div v-for="(slots, lot) in slotDict" :key="lot" class="mb-4 p-3 border rounded bg-light">
+          <h4 class="mb-3">{{ lot }}:</h4>
+          <div class="d-flex mb-2">
+          <button class="btn " data-bs-toggle="modal" data-bs-target="#LotModal" @click="viewLot(lot)">View/Edit Lot</button>
+          <button class="btn" @click="deleteLot(lot)">Delete Lot</button>
+        </div>
+        <p class="d-flex gap-2 m-3">Available Slots: {{ slotDetails[lot][0] }} / {{ slotDetails[lot][1] }}</p>
         <div class="d-flex flex-wrap justify-content-start gap-2">
-          <button v-for="(slot, index) in slots" :key="index" class="slot-button btn":class="slot[1] ? 'btn-danger' : 'btn-success'" data-bs-toggle="modal" data-bs-target="#SlotModal" @click="viewSlot(slot[0],lot)">
-            {{ slot[0] }}
-          </button>
+          <button v-for="(slot, index) in slots" :key="index" class="slot-button btn" :class="slot[1] ? 'btn-danger' : 'btn-success'" data-bs-toggle="modal" data-bs-target="#SlotModal" @click="viewSlot(slot[0], lot)">{{ slot[0] }}</button>
         </div>
       </div>
     </div>
+
     <div v-if="selectedLoc !== ''" class="d-flex justify-content-between gap-3 m-3">
         <button @click="deleteLocation" class="btn  flex-fill">Delete Location</button>
         <button class="btn flex-fill" data-bs-toggle="modal" data-bs-target="#editLocationModal" @click="viewLocation">View/Edit Location</button>
@@ -178,6 +181,7 @@ export default {
     selectedLoc: '',
     selectedLot: '',
     slotDict: {},
+    slotDetails: {},
     editForm: {
       address: '',
       pincode: '',
@@ -351,18 +355,18 @@ export default {
       this.msg = 'Failed to update location';
     }
   },
-    async fetchSlots(){
-      this.addLot.location = this.selectedLoc; 
-      fetch('http://localhost:5000/api/slots/'+ this.selectedLoc)
-        .then(response => response.json())
-        .then(data => {
-          this.slotDict=data;
-        })
-        .catch(error => {
-          console.error('Error fetching slots:', error);
-          this.msg = 'Error fetching slots';
-        });
-    },
+    async fetchSlots() {
+    this.addLot.location = this.selectedLoc;
+    try {
+      const response = await fetch(`http://localhost:5000/api/slots/${this.selectedLoc}`);
+      const data = await response.json();
+      this.slotDict = data[0]; // lotSlots
+      this.slotDetails = data[1]; // lotDetails (optional if used)
+    } catch (error) {
+      console.error('Error fetching slots:', error);
+      this.msg = 'Error fetching slots';
+    }
+},
     async addLocation(){
       this.$router.push({ name: 'addLocation' })
     },
