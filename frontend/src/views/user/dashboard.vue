@@ -1,15 +1,17 @@
 <template>
   <div class="container my-4">
     <h1 class="text-center">DashBoard</h1>
+    <nav class="nav-bar d-flex justify-content-center gap-4 my-3">
+      <router-link to="/dashboard" class="nav-link">Home</router-link>
+      <router-link to="/dashboard/book" class="nav-link">Booked </router-link>
+      <router-link to="/dashboard/charts" class="nav-link">Charts</router-link>
+      <router-link to="/dashboard/profile" class="nav-link">Profile</router-link>
+    </nav>
     <div class="d-flex justify-content-end mb-3">
       <button class="btn btn-dark rounded-pill d-flex align-items-center gap-2 px-4 py-2" @click="logout">
         <span>Log Out</span>
       </button>
     </div>
-    <router-link to="/admin" class="nav-link">Home</router-link>
-  <router-link to="/admin/users" class="nav-link">Users</router-link>
-  <router-link to="/admin/search" class="nav-link">Search</router-link>
-  <router-link to="/admin/charts" class="nav-link">Charts</router-link>
     <div class="d-flex justify-content-center">
       <div class="text-center">
         <div v-if="message">{{ message }}</div>

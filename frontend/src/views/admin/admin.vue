@@ -359,8 +359,8 @@ export default {
      try {
       const response = await fetch(`http://localhost:5000/api/slots/${this.selectedLoc}`);
       const data = await response.json();
-      this.slotDict = data[0]; // lotSlots
-      this.slotDetails = data[1]; // lotDetails (optional if used
+      this.slotDict = data[0];
+      this.slotDetails = data[1];
     } catch (error) {
       console.error('Error fetching slots:', error);
       this.msg = 'Error fetching slots';
