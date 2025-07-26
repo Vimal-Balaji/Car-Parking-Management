@@ -387,7 +387,10 @@ export default {
   },
   async mounted() {
     this.isAdmin = localStorage.getItem("isAdmin") === "true";
-    
+    if (!this.isAdmin) {
+      this.$router.push('/login'); // Redirect if not admin
+      return;
+    }
     try {
     const response = await this.request('/api/location');
     this.locations = response.location || [];

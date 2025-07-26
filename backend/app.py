@@ -318,8 +318,8 @@ class ApiSlots(Resource):
             'lotId': slots.lotId,
             'isOccupied': isOccupied,
             'userId': occupied_slot.userId if occupied_slot else None,
-            'startTime': occupied_slot.startTime if occupied_slot else None,
-            'endTime': occupied_slot.endTime if occupied_slot else None,
+            'startTime': str(occupied_slot.startTime) if occupied_slot else None,
+            'endTime': str(occupied_slot.endTime) if occupied_slot else None,
             'vehicleNo': occupied_slot.vehicleNo if occupied_slot else None,
             'price': occupied_slot.price  if occupied_slot else None
         }, 200

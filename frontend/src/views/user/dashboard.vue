@@ -6,6 +6,10 @@
         <span>Log Out</span>
       </button>
     </div>
+    <router-link to="/admin" class="nav-link">Home</router-link>
+  <router-link to="/admin/users" class="nav-link">Users</router-link>
+  <router-link to="/admin/search" class="nav-link">Search</router-link>
+  <router-link to="/admin/charts" class="nav-link">Charts</router-link>
     <div class="d-flex justify-content-center">
       <div class="text-center">
         <div v-if="message">{{ message }}</div>
