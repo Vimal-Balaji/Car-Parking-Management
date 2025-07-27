@@ -4,9 +4,9 @@ from flask import request,jsonify
 from datetime import datetime
 from flask_jwt_extended import create_access_token, jwt_required,get_jwt_identity
 
-from extensions import red
+from extensions import *
 from model import *
-from func import gen_user_id,gen_lot_id
+from func import gen_user_id,gen_lot_id,send_email
 
 # --- Signup Route ---
 class ApiSignup(Resource):
@@ -338,7 +338,7 @@ class ApiLots(Resource):
             db.session.add(addSlot)
         db.session.add(addLot)
         db.session.commit()
-        return {'message': 'Lot added successfully'}, 201
+        return {'message': 'Lot added successfully',"lotId":lotId}, 201
     
     @jwt_required()
     def put(self, lotId=None):
@@ -556,3 +556,47 @@ class ApiBookSlot(Resource):
         db.session.delete(occupied_slot)
         db.session.commit()
         return {"message": f'Slot {slotId} in lot {lotId} deleted successfully'}, 200
+    
+class ApiSendMail(Resource):
+    @jwt_required()
+    def post(self):
+        data=request.get_json()
+        choice=data.get("choice")
+        current_user_email=get_jwt_identity()
+        user=User.query.filter_by(email=current_user_email).first()
+        if choice=="bookLot":
+            #--details--
+            lotId=data.get("lotId")
+            price=data.get("price")
+            vehicleNo=data.get("vehicleNo")
+            location=data.get("location")
+            #----EMAIL----
+            bodyMsg = f"Hi {user.name},\nYour slot has been successfully booked.\nLocation: {location}\nLot ID: {lotId}\nPrice: {price}\nVehicle No: {vehicleNo}\nThank you for using our service!"
+            recipients=[f"{user.email}"]
+            subject="Booking Of Lots"
+            send_email(subject,recipients,bodyMsg)
+            
+        elif choice=="createLot":
+            #-details---
+            lotId=data.get("lotId")
+            location=data.get("location")
+            price=data.get("price")
+            maxSlots=data.get("maxSlots")
+            
+            #---EMAIL---
+            users=User.query.all()
+            recipients=[]
+            for user in users:
+                if user.userId!=100000:
+                    recipients.append(f"{user.email}")
+            bodyMsg=f"A new parking lot has been created!\nLocation: {location}\nLot ID: {lotId}\nPrice:{price}\nMax Slots:{maxSlots}\nCheck it out in your app!"
+            subject="Creation of New Lot !!"
+            send_email(subject,recipients,bodyMsg)
+             
+            
+
+            
+
+
+
+    

@@ -133,6 +133,7 @@ export default {
       try{
         const response=await this.request(`http://localhost:5000/api/book`,"POST",this.bookSlot);
         this.modalMsg = response.message;
+        const reponse=await this.request(`http://localhost:5000/api/sendMail`,"POST",{"choice":"bookLot","price":this.bookSlot.price,"location":this.selectedLoc,"lotId":this.bookSlot.lotId,"vehicleNo":this.bookSlot.vehicleNo})
         if (response.success) {
           setTimeout(() => window.location.reload(), 1000);
         }

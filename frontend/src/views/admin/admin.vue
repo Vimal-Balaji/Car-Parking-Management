@@ -297,6 +297,7 @@ export default {
         const response = await this.request('/api/lot', 'POST', this.addLot);
   
         this.AddLotMsg = response.message || 'Lot added successfully';
+        const reponse=await this.request(`http://localhost:5000/api/sendMail`,"POST",{"choice":"createLot","price":this.addLot.price,"location":this.selectedLoc,"lotId":response.lotId,"maxSlots":this.addLot.maxSlots})
         setTimeout(() => window.location.reload(), 1000);
       } catch (err) {
         console.error('Error adding lot:', err);
