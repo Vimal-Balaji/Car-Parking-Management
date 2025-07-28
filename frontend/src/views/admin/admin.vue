@@ -14,14 +14,17 @@
     <p v-if="isAdmin" class="fw-semibold text-center">Welcome, Admin!</p>
 
     <div class="mb-4">
-      <label for="location" class="form-label ml-3">Select Location:</label>
-      <select v-model="selectedLoc" id="location" @change="fetchSlots" class="form-select w-50 text-center">
+      <p class="text-center mb-4"><strong>{{ msg }}</strong></p>
+      <div class="text-center"><label for="location" class="form-label ml-3">Select Location:</label></div>
+      <div class="d-flex justify-content-center">
+      <select v-model="selectedLoc" id="location" @change="fetchSlots" class="form-select text-center " style="width: 250px; max-width: 100%;">
         <option disabled value="">-- Choose a location --</option>
         <option value="All locations">All Locations</option>
         <option v-for="loc in locations" :key="loc" :value="loc">
           {{ loc }}
         </option>
       </select>
+      </div>
     </div>
      
     <div v-if="Object.keys(slotDict).length > 0">
@@ -42,7 +45,7 @@
         <button class="btn flex-fill" data-bs-toggle="modal" data-bs-target="#editLocationModal" @click="viewLocation">View/Edit Location</button>
         <button class="btn flex-fill" data-bs-toggle="modal" data-bs-target="#addLotModal">Add Lot</button>
     </div>
-    <button @click="addLocation" class="btn btn-primary text-center">Add Location</button>
+    <div class="text-center"><button @click="addLocation" class="btn btn-dark   gap-2 px-4 py-2 rounded-0">Add Location</button></div>
     <div class="text-center mt-3" v-if="msg">{{ msg }}</div>
   </div>
           <!-- Edit Location Modal -->
@@ -63,7 +66,7 @@
                   <div class="text-center">{{ modalMsg }}</div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" @click="EditLocation">Save Changes</button>
+                    <button type="button" class="btn btn-dark" @click="EditLocation">Save Changes</button>
                   </div>
 
                 </div>
@@ -88,7 +91,7 @@
                   <div class="text-center">{{ AddLotMsg }}</div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" @click="submitLot">Save Changes</button>
+                    <button type="button" class="btn btn-dark" @click="submitLot">Save Changes</button>
                   </div>
 
                 </div>
@@ -115,7 +118,7 @@
                   <div class="text-center">{{ LotMsg }}</div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" @click="editLot">Save Changes</button>
+                    <button type="button" class="btn btn-dark" @click="editLot">Save Changes</button>
                   </div>
 
                 </div>
@@ -151,7 +154,7 @@
                   <div class="text-center">{{ SlotMsg }}</div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="FALSE">Cancel</button>
-                    <button type="button" class="btn btn-primary" @click="deleteSlot">Delete Slot</button>
+                    <button type="button" class="btn btn-dark" @click="deleteSlot">Delete Slot</button>
                   </div>
 
             </div>

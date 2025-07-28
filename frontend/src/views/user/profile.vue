@@ -1,5 +1,5 @@
 <template>
-  <div class="container my-5">
+  <div class="container my-4">
     <h1 class="text-center">Profile</h1>
 
     <nav class="nav-bar d-flex justify-content-center gap-4 my-3">
@@ -15,21 +15,21 @@
     <!-- View Profile -->
     <div v-if="editProfile" class="modal-body mt-3">
             <div class="row mb-2">
-                <div class="col-4 text-end fw-bold">User ID&nbsp;&nbsp;:</div>
-                <div class="col-sm-8">{{ details.userId }}</div>
+                <div class="col-6 text-end fw-bold">User ID&nbsp;&nbsp;:</div>
+                <div class="col-6">{{ details.userId }}</div>
             </div>
             <div class="row mb-2">
-                <div class="col-4 text-end fw-bold">Email&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
-                <div class="col-8">{{ details.email }}</div>
+                <div class="col-6 text-end fw-bold">Email&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
+                <div class="col-6">{{ details.email }}</div>
             </div>    
             <div class="row mb-2">
-                <div class="col-4 text-end fw-bold">Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
-                <div class="col-8">{{ details.name }}</div>
+                <div class="col-6 text-end fw-bold">Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
+                <div class="col-6">{{ details.name }}</div>
             </div>
             
             <div class="row mb-2">
-                <div class="col-4 text-end fw-bold">Address:</div>
-                <div class="col-8">{{ details.address }}</div>
+                <div class="col-6 text-end fw-bold">Address:</div>
+                <div class="col-6">{{ details.address }}</div>
             </div>
         <div class="d-flex justify-content-center mt-3"><button class="btn btn-dark rounded-pill d-flex align-items-center gap-2 px-4 py-2" @click="toggleEdit">Edit Profile</button></div>
     </div>
@@ -37,17 +37,24 @@
     <!-- Edit Profile -->
     <div v-else class="modal-body text center mt-3">
         <div class="row mb-2">
-            <div class="col-4 text-end fw-bold">User ID&nbsp;&nbsp;:</div>
-            <div class="col-sm-8">{{ details.userId }}</div>
+            <div class="col-6 text-end fw-bold">User ID&nbsp;&nbsp;:</div>
+            <div class="col-sm-6">{{ details.userId }}</div>
         </div>
         <div class="row mb-2">
-            <div class="col-4 text-end fw-bold">Email&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
-            <div class="col-8">{{ details.email }}</div>
+            <div class="col-6 text-end fw-bold">Email&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</div>
+            <div class="col-6">{{ details.email }}</div>
         </div>
-        <div class="d-flex flex-column align-items-center">
-            <input type="text" class="form-control w-50 mb-3" v-model.trim="details.name" placeholder="Enter your name"/>
-            <input type="text" class="form-control w-50 mb-3" v-model.trim="details.address" placeholder="Enter your address"/>
-        </div>
+        <div class="container w-50">
+  <div class="mb-3">
+    <label class="form-label" for="name">Name:</label>
+    <input type="text" id="name" class="form-control" v-model.trim="details.name" placeholder="Enter your name" />
+  </div>
+  
+  <div class="mb-3">
+    <label class="form-label" for="address">Address:</label>
+    <input type="text" id="address" class="form-control" v-model.trim="details.address" placeholder="Enter your address" />
+  </div>
+</div>
         <div class="d-flex justify-content-center mt-3"><button class="btn btn-dark rounded-pill d-flex align-items-center gap-2 px-4 py-2" @click="updateProfile">Update Profile</button></div>
     </div>
 

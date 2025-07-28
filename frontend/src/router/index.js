@@ -29,6 +29,11 @@ const router = createRouter({
       component: () => import('../views/user/profile.vue')
     },
     {
+      path:'/dashboard/charts',
+      name: 'userChart',
+      component: () => import('../views/user/chart.vue')
+    },
+    {
       path: '/admin',
       name: 'admin',
       component: () => import('../views/admin/admin.vue')
@@ -48,6 +53,11 @@ const router = createRouter({
       name:'search',
       component:()=>import('../views/admin/search.vue')
 
+    },
+    {
+      path:'/admin/charts',
+      name:'adminChart',
+      component:()=>import('../views/admin/chart.vue')
     },
     {
       path: '/:pathMatch(.*)*',

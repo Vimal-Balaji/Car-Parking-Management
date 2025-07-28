@@ -18,7 +18,7 @@
             </thead>
             <tbody>
                 <tr v-for="(detail,index) in bookDetails" :key="index">
-                    <td>{{index+1}}</td><td>{{ detail.location }}</td><td>{{ detail.lotId }}</td><td>{{detail.slotId}}</td><td>{{ detail.vehicleNo }}</td><td>{{ detail.startTime }}</td><td>{{ detail.endTime }}</td><td>{{ detail.price }}</td><td><button class="btn " @click="releaseSlot(detail.slotId, detail.lotId)">Release</button></td>
+                    <td>{{index+1}}</td><td>{{ detail.location }}</td><td>{{ detail.lotId }}</td><td>{{detail.slotId}}</td><td>{{ detail.vehicleNo }}</td><td>{{ detail.startTime }}</td><td>{{ detail.endTime }}</td><td>{{ detail.price }}</td><td><button class="btn btn-outline-danger" @click="releaseSlot(detail.slotId, detail.lotId)">Release</button></td>
                 </tr>
             </tbody>
             

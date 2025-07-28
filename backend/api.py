@@ -402,8 +402,8 @@ class ApiLots(Resource):
         if not lot:
             return {'message': 'Lot not found'}, 404
         occupied_slots = OccupiedSlot.query.filter_by(lotId=lotId).all()
-        for occupied in occupied_slots:
-            db.session.delete(occupied)
+        if occupied_slots:
+            return {'message': 'Cannot delete lot with occupied slots'}, 200
         slots = Slots.query.filter_by(lotId=lotId).all()
         for slot in slots:
             db.session.delete(slot)
@@ -593,10 +593,94 @@ class ApiSendMail(Resource):
             subject="Creation of New Lot !!"
             send_email(subject,recipients,bodyMsg)
              
-            
+class ApiCharts(Resource):
+    def get(self,choice):
+        if choice=="user":
+            locations = Locations.query.all()
+
+            bar_data = []
+            total_occupied = 0
+            total_non_occupied = 0
+
+            for loc in locations:
+                lots = Lots.query.filter_by(location=loc.location).all()
+                loc_total = 0
+                loc_occupied = 0
+
+                for lot in lots:
+                    slots = Slots.query.filter_by(lotId=lot.lotId).all()
+                    loc_total += len(slots)
+                    loc_occupied += sum(1 for slot in slots if slot.isOccupied)
+
+                loc_non_occupied = loc_total - loc_occupied
+
+                bar_data.append({
+                    'location': loc.location,
+                    'occupied': loc_occupied,
+                    'non_occupied': loc_non_occupied
+                })
+
+                total_occupied += loc_occupied
+                total_non_occupied += loc_non_occupied
+
+            response = {
+                'bar_chart': bar_data,
+                'pie_chart': {
+                    'occupied': total_occupied,
+                    'non_occupied': total_non_occupied
+                }
+            }
+
+            return jsonify(response)
+        if choice=="admin":
+            locations = Locations.query.all()
+
+            bar_data = []
+            revenue_data = []
+            total_occupied = 0
+            total_non_occupied = 0
+
+            for loc in locations:
+                lots = Lots.query.filter_by(location=loc.location).all()
+                loc_total = 0
+                loc_occupied = 0
+                loc_revenue = 0
+
+                for lot in lots:
+                    slots = Slots.query.filter_by(lotId=lot.lotId).all()
+                    loc_total += len(slots)
+                    loc_occupied += sum(1 for slot in slots if slot.isOccupied)
+
+                    # Calculate revenue from OccupiedSlot
+                    occupied = OccupiedSlot.query.filter_by(lotId=lot.lotId).all()
+                    loc_revenue += sum(item.price for item in occupied)
+
+                bar_data.append({
+                    'location': loc.location,
+                    'occupied': loc_occupied,
+                    'non_occupied': loc_total - loc_occupied
+                })
+
+                revenue_data.append({
+                    'location': loc.location,
+                    'revenue': round(loc_revenue, 2)
+                })
+
+                total_occupied += loc_occupied
+                total_non_occupied += loc_total - loc_occupied
+
+            return jsonify({
+                'bar_chart': bar_data,
+                'pie_chart': {
+                    'occupied': total_occupied,
+                    'non_occupied': total_non_occupied
+                },
+                'revenue_chart': revenue_data
+            })
+
+                
+                    
+
+
 
             
-
-
-
-    
