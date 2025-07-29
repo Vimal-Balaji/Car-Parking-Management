@@ -4,7 +4,12 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path:'/',
+      name:'front',
+      component:()=>import('../views/front.vue')
+    },
+    {
+      path: '/login',
       name: 'login',
       component: () => import('../views/login.vue')
     },
@@ -68,8 +73,8 @@ const router = createRouter({
 
 
 router.beforeEach((to, from, next) => {
-  const publicPages = ['login', 'signup']
-  const authRequired = !publicPages.includes(to.name)
+  const publicPaths = ['/login', '/signup', '/'] // Include root path
+  const authRequired = !publicPaths.includes(to.path)
   const token = localStorage.getItem('token')
 
   if (authRequired && !token) {
@@ -78,5 +83,4 @@ router.beforeEach((to, from, next) => {
 
   next()
 })
-
 export default router

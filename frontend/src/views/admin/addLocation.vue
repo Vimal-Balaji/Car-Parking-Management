@@ -1,42 +1,50 @@
 <template>
-    <div class="row">
-        <div class="col text-end">
-            <button @click="logout" class="btn btn-danger m-3">Logout</button>
-        </div>
+  <div class="container my-3">
+    <h1 class="text-center">Location Details</h1>
+
+    <div class="d-flex justify-content-between mb-4">
+      <!-- Back Button -->
+      <button class="btn btn-dark d-flex align-items-center gap-2 px-3 py-1 " @click="goBack">
+        <span>Back</span>
+      </button>
+
+      <!-- Logout Button -->
+      <button class="btn btn-dark d-flex align-items-center gap-2 px-3 py-1 " @click="logout">
+        <span>Log Out</span>
+      </button>
     </div>
-    
-    <div class="container mt-3">
-        <h1 class="text-center"> Location Details</h1>
-        <form>
-            <div class="row mb-3">
-                <label class="col-sm-3 col-form-label" for="location">Location</label>
-                <div class="col-sm-9">
-                    <input v-model="location" type="text" id="location" class="form-control" placeholder="Enter location" />
-                </div>
-            </div>
 
-            <div class="row mb-3">
-            <label class="col-sm-3 col-form-label" for="address">Address</label>
-            <div class="col-sm-9">
-                <input v-model="address" type="text" id="address" class="form-control" placeholder="Enter address" />
-            </div>
-            
-            </div>
-            <div class="row mb-3">
-            <label class="col-sm-3 col-form-label" for="pincode">Pin Code</label>
-            <div class="col-sm-9">
-                <input v-model="pincode" type="text" id="pincode" class="form-control" placeholder="Enter pincode" />
-            </div>
-            </div>
-        </form>
-        <div class="text-center" v-html="msg"></div>
-        <div class="text-center">
-            <button @click="addLocation" class="btn btn-primary fade-button">Add Location</button>
-            
+    <form>
+      <div class="row mb-3">
+        <label class="col-4 text-end col-form-label" for="location">Location</label>
+        <div class="col-8">
+          <input v-model="location" type="text" id="location" class="form-control w-75 " placeholder="---Enter location---" />
         </div>
-</div>
+      </div>
 
+      <div class="row mb-3">
+        <label class="col-4 text-end col-form-label" for="address">Address</label>
+        <div class="col-8">
+          <input v-model="address" type="text" id="address" class="form-control w-75 " placeholder="---Enter address---" />
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <label class="col-4 text-end col-form-label" for="pincode">Pin Code</label>
+        <div class="col-8">
+          <input v-model="pincode" type="text" id="pincode" class="form-control w-75" placeholder="---Enter pincode---" />
+        </div>
+      </div>
+    </form>
+
+    <div class="text-center" v-html="msg"></div>
+
+    <div class="text-center">
+      <button @click="addLocation" class="btn btn-dark">Add Location</button>
+    </div>
+  </div>
 </template>
+
 <script>
 import logoutMixin from '@/mixin/logoutMixin.js'
 export default{
@@ -71,7 +79,10 @@ export default{
             } catch (err) {
                 this.msg = err.msg || 'Failed to add location.';
             }
-        }
+        },
+        goBack() {
+    this.$router.back(); // Go to previous page
+  },
     },
     async mounted()
     {
@@ -86,16 +97,9 @@ export default{
 </script>
 <style scoped>
 .container {
-  max-width: 400px;
+  max-width: 600px;
 }
 
-.fade-button {
-  transition: background-color 0.3s ease;
-}
 
-/* Scoped hover fix using ::v-deep */
-::v-deep(.fade-button:hover) {
-  background-color: rgb(80, 43, 45) !important;
-}
 </style>
 

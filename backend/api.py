@@ -3,10 +3,11 @@ import json
 from flask import request,jsonify
 from datetime import datetime
 from flask_jwt_extended import create_access_token, jwt_required,get_jwt_identity
+from flask import send_from_directory
 
 from extensions import *
 from model import *
-from func import gen_user_id,gen_lot_id,send_email
+from func import gen_user_id,gen_lot_id,send_mail
 
 # --- Signup Route ---
 class ApiSignup(Resource):
@@ -214,7 +215,10 @@ class ApiLocation(Resource):
 class ApiByLocation(Resource):
     def get(self, location, decide):
         if decide == "slots":
-            entry = Lots.query.filter_by(location=location).all()
+            if location=="all":
+                entry = Lots.query.all()
+            else:
+                entry = Lots.query.filter_by(location=location).all()
             lotIds = [ent.lotId for ent in entry]
             lotSlots = {}
             lotDetails = {}
@@ -355,7 +359,7 @@ class ApiLots(Resource):
         print(lotId, new_location, new_max_slots, new_price)
         lot = Lots.query.filter_by(lotId=lotId).first()
         if not lot:
-            return {'message': 'Lot not found'}, 404
+            return {'message': 'Lot not found'}, 200
         existing = Lots.query.filter_by(location=new_location).first()
         new_lot=Lots.query.filter_by(lotId=lotId).first()
         if new_price:
@@ -364,7 +368,7 @@ class ApiLots(Resource):
             if existing:
                 new_lot.location = new_location
             else:
-                return {'message': 'Location does not exist'}, 404
+                return {'message': 'Location does not exist'}, 200
         if new_max_slots:
             try:
                 new_max_slots = int(new_max_slots)
@@ -574,7 +578,6 @@ class ApiSendMail(Resource):
             bodyMsg = f"Hi {user.name},\nYour slot has been successfully booked.\nLocation: {location}\nLot ID: {lotId}\nPrice: {price}\nVehicle No: {vehicleNo}\nThank you for using our service!"
             recipients=[f"{user.email}"]
             subject="Booking Of Lots"
-            send_email(subject,recipients,bodyMsg)
             
         elif choice=="createLot":
             #-details---
@@ -591,7 +594,8 @@ class ApiSendMail(Resource):
                     recipients.append(f"{user.email}")
             bodyMsg=f"A new parking lot has been created!\nLocation: {location}\nLot ID: {lotId}\nPrice:{price}\nMax Slots:{maxSlots}\nCheck it out in your app!"
             subject="Creation of New Lot !!"
-            send_email(subject,recipients,bodyMsg)
+        send_mail(subject,recipients,bodyMsg)
+        return "mail sent succesfilly"
              
 class ApiCharts(Resource):
     def get(self,choice):
@@ -678,7 +682,12 @@ class ApiCharts(Resource):
                 'revenue_chart': revenue_data
             })
 
-                
+
+
+@app.route('/reports/<filename>')
+def download_report(filename):
+    return send_from_directory('reports', filename, as_attachment=True)
+       
                     
 
 

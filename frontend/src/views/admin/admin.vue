@@ -19,7 +19,7 @@
       <div class="d-flex justify-content-center">
       <select v-model="selectedLoc" id="location" @change="fetchSlots" class="form-select text-center " style="width: 250px; max-width: 100%;">
         <option disabled value="">-- Choose a location --</option>
-        <option value="All locations">All Locations</option>
+        <option value="all">All Locations</option>
         <option v-for="loc in locations" :key="loc" :value="loc">
           {{ loc }}
         </option>

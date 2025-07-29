@@ -17,7 +17,7 @@ def gen_lot_id():
         if not Lots.query.filter_by(lotId=lotId).first():
             return lotId
 
-def send_email(subject, recipients, body):
+def send_mail(subject, recipients, body):
     if isinstance(recipients, str):
         recipients = [recipients]  
 
