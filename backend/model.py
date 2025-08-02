@@ -1,12 +1,13 @@
 from extensions import db
 from init import app 
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model):
     __tablename__ = 'user'
     userId = db.Column(db.Integer, primary_key=True,unique=True)
     name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(50), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
     address=db.Column(db.String(200), nullable=True)
 
     def get_identity(self):
@@ -54,7 +55,7 @@ def setup_database():
     with app.app_context():
         db.create_all()
         if not User.query.filter_by(email='admin@example.com').first():
-            admin = User(userId=100000, name='admin', email='admin@example.com', password='admin123')
+            admin = User(userId=100000, name='admin', email='admin@example.com', password=generate_password_hash('admin123'))
             db.session.add(admin)
             db.session.commit()
 

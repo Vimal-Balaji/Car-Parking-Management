@@ -4,6 +4,7 @@ from flask import request,jsonify
 from datetime import datetime
 from flask_jwt_extended import create_access_token, jwt_required,get_jwt_identity
 from flask import send_from_directory
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from extensions import *
 from model import *
@@ -22,7 +23,7 @@ class ApiSignup(Resource):
         if User.query.filter_by(email=email).first():
             return {'message': 'Email already exists'}, 409
 
-        new_user = User(userId=gen_user_id(), name=name, email=email, password=password)
+        new_user = User(userId=gen_user_id(), name=name, email=email, password=generate_password_hash(f"{password}"))
         db.session.add(new_user)
         db.session.commit()
 
@@ -35,8 +36,8 @@ class ApiLogin(Resource):
         email = data.get('email')
         password = data.get('password')
 
-        user = User.query.filter_by(email=email, password=password).first()
-        if not user:
+        user = User.query.filter_by(email=email).first()
+        if not user or not check_password_hash(user.password, password):
             return {'message': 'Invalid email or password'}, 401
 
         access_token = create_access_token(identity=user.email)
@@ -110,7 +111,7 @@ class ApiLocation(Resource):
             print(data)
             newData=list(set(data))  # Remove duplicates
             location_list={"location": newData }
-            red.set('location_list', json.dumps(location_list), ex=100)  
+            red.set('location_list', json.dumps(location_list), ex=1)  
             return jsonify(location_list)
         else:
             cachedLocation=red.get(f'location_{location}')
@@ -123,28 +124,38 @@ class ApiLocation(Resource):
                 locDict['location'] = location_entry.location
                 locDict['address'] = location_entry.address
                 locDict['pincode'] = location_entry.pincode
-            red.set(f'location_{location}', json.dumps(locDict), ex=10) 
+            red.set(f'location_{location}', json.dumps(locDict), ex=100) 
             return jsonify(locDict)
-
+    @jwt_required()
     def post(self, location=None):
+        current_user_email = get_jwt_identity()
+        user = User.query.filter_by(email=current_user_email).first()
+        if user.email!='admin@example.com':
+            return {'message':"Unauthorized"},400
         if location:
             return {'message': 'URL does not accept location parameter'}, 400
         data=request.get_json()
         location=data.get('location')
-        #lotId=gen_lot_id()
+        lotId=gen_lot_id()
         address=data.get('address')
         pincode=data.get('pincode')
         print(address,pincode,location)
-        #maxSlots=data.get('maxSlots')
-        #price=data.get('price')
-        if not location or not address or not pincode:
+        maxSlot=data.get('maxSlot')
+        price=data.get('price')
+        if not location or not address or not pincode or not lotId or not maxSlot or not price:
             return {'message': 'Missing fields'}, 400
         if Locations.query.filter_by(location=location).first():
-            return {'message': 'Location already exists'}, 409
+            return {'message': 'Location already exists'}, 200
         new_location = Locations(location=location, address=address,pincode=pincode)
+        # add the lots and slots
+        new_lot = Lots(lotId=lotId, location=location, maxSlots=maxSlot, price=price)
+        db.session.add(new_lot)
+        for i in range(1, int(maxSlot) + 1):
+            new_slot = Slots(slotId=i, lotId=lotId, isOccupied=False)
+            db.session.add(new_slot)
         db.session.add(new_location)
         db.session.commit()
-        return {'message': 'Location added successfully'}, 201
+        return {'message': 'Location added successfully','lotId':f'{lotId}'}, 201
     
     @jwt_required()
     def delete(self, location=None):
@@ -194,9 +205,6 @@ class ApiLocation(Resource):
             return {'message': 'Location not found'}, 404
 
         if new_location:
-            existing = Locations.query.filter_by(location=new_location).first()
-            if existing and existing.id != location_entry.id:
-                return {'message': 'New location already exists'}, 409
             location_entry.location = new_location
 
         if new_address:
@@ -311,13 +319,16 @@ class ApiLots(Resource):
             return jsonify({"lotList": lotList})
         else:
             lot = Lots.query.filter_by(lotId=lotId).first()
+            location=Locations.query.filter_by(location=lot.location).first()
             if not lot:
                 return {'message': 'Lot not found'}, 404
             return {
                 'lotId': lot.lotId,
                 'location': lot.location,
                 'maxSlots': lot.maxSlots,
-                'price': lot.price
+                'price': lot.price,
+                'address': location.address if location else None,
+                'pincode': location.pincode if location else None
             }, 200
         
     @jwt_required()
@@ -416,73 +427,68 @@ class ApiLots(Resource):
         return {'message': 'Lot deleted successfully'}, 200
 
 class ApiGetDetails(Resource):
-    def get(self,OccOrNot=2,field=None,spec=None):
-        detailsList=[]
+    def get(self, OccOrNot=2, field=None, spec=None):
         if not field:
             return {'message': 'Field parameter is required'}, 400
-        if field=="location":
-            if spec=="all":
-                details=Lots.query.all()
-                for detail in details:
-                    slots=Slots.query.filter_by(lotId=detail.lotId).all()
-                    for slot in slots:
-                        if OccOrNot==2 :
-                            detailsList.append({"lotId":detail.lotId,"location":detail.location,"slotId":slot.slotId,"isOccupied":slot.isOccupied})
-                        elif OccOrNot==0 and slot.isOccupied== False:
-                            detailsList.append({"lotId":detail.lotId,"location":detail.location,"slotId":slot.slotId,"isOccupied":slot.isOccupied})
-                        elif OccOrNot==1 and slot.isOccupied== True:
-                            detailsList.append({"lotId":detail.lotId,"location":detail.location,"slotId":slot.slotId,"isOccupied":slot.isOccupied})
-                return jsonify(detailsList)
-            else:
-                details=Lots.query.filter_by(location=spec).all()
-                for detail in details:
-                    slots=Slots.query.filter_by(lotId=detail.lotId).all()
-                    for slot in slots:
-                        if OccOrNot==2 :
-                            detailsList.append({"lotId":detail.lotId,"location":detail.location,"slotId":slot.slotId,"isOccupied":slot.isOccupied})
-                        elif OccOrNot==0 and slot.isOccupied== False:
-                            detailsList.append({"lotId":detail.lotId,"location":detail.location,"slotId":slot.slotId,"isOccupied":slot.isOccupied})
-                        elif OccOrNot==1 and slot.isOccupied== True:
-                            detailsList.append({"lotId":detail.lotId,"location":detail.location,"slotId":slot.slotId,"isOccupied":slot.isOccupied})
-                #print(detailsList)
-                return jsonify(detailsList)
-        elif field=="lotId":
+
+        cache_key = f"details:{field}:{spec}:{OccOrNot}"
+        cached = red.get(cache_key)
+        if cached:
+            print(f"The data is taken from {cache_key}")
+            return jsonify(json.loads(cached))
+
+        detailsList = []
+
+        if field == "location":
+            lots = Lots.query.all() if spec == "all" else Lots.query.filter_by(location=spec).all()
+            for lot in lots:
+                slots = Slots.query.filter_by(lotId=lot.lotId).all()
+                for slot in slots:
+                    if OccOrNot == 2 or (OccOrNot == 0 and not slot.isOccupied) or (OccOrNot == 1 and slot.isOccupied):
+                        detailsList.append({
+                            "lotId": lot.lotId,
+                            "location": lot.location,
+                            "slotId": slot.slotId,
+                            "isOccupied": slot.isOccupied
+                        })
+
+        elif field == "lotId":
             if not spec:
                 return {'message': 'Spec parameter is required'}, 400
-            lot = Lots.query.filter_by(lotId=spec).first()
-            if not lot:
+            lots = Lots.query.all() if spec == "all" else Lots.query.filter_by(lotId=spec).all()
+            if not lots:
                 return {'message': 'Lot not found'}, 404
-            slots = Slots.query.filter_by(lotId=spec).all()
-            for slot in slots:
-                if OccOrNot == 2:
-                    detailsList.append({"lotId": lot.lotId, "location": lot.location, "slotId": slot.slotId, "isOccupied": slot.isOccupied})
-                elif OccOrNot == 0 and slot.isOccupied == False:
-                    detailsList.append({"lotId": lot.lotId, "location": lot.location, "slotId": slot.slotId, "isOccupied": slot.isOccupied})
-                elif OccOrNot == 1 and slot.isOccupied == True:
-                    detailsList.append({"lotId": lot.lotId, "location": lot.location, "slotId": slot.slotId, "isOccupied": slot.isOccupied})
-            return jsonify(detailsList)
+            for lot in lots:
+                slots = Slots.query.filter_by(lotId=lot.lotId).all()
+                for slot in slots:
+                    if OccOrNot == 2 or (OccOrNot == 0 and not slot.isOccupied) or (OccOrNot == 1 and slot.isOccupied):
+                        detailsList.append({
+                            "lotId": lot.lotId,
+                            "location": lot.location,
+                            "slotId": slot.slotId,
+                            "isOccupied": slot.isOccupied
+                        })
+
         elif field == "userId":
-            if spec == "all":
-                occupiedSlots = OccupiedSlot.query.all()
-            else:
-                occupiedSlots = OccupiedSlot.query.filter_by(userId=spec).all()
+            occupiedSlots = OccupiedSlot.query.all() if spec == "all" else OccupiedSlot.query.filter_by(userId=spec).all()
             if not occupiedSlots:
                 return {'message': 'No occupied slots found for this user'}, 202
-            for occupied in occupiedSlots:
-                name = User.query.filter_by(userId=occupied.userId).first()
+            for occ in occupiedSlots:
+                user = User.query.filter_by(userId=occ.userId).first()
                 detailsList.append({
-                    "userId": occupied.userId,
-                    "userName": name.name,
-                    "email": name.email,
-                    "lotId": occupied.lotId,
-                    "slotId": occupied.slotId,
-                    "vehicleNo": occupied.vehicleNo,
-                    "startTime": occupied.startTime.strftime('%Y-%m-%d %H:%M:%S'),
-                    "endTime": occupied.endTime.strftime('%Y-%m-%d %H:%M:%S'),
-                    "price": occupied.price
+                    "userId": occ.userId,
+                    "userName": user.name if user else None,
+                    "email": user.email if user else None,
+                    "lotId": occ.lotId,
+                    "slotId": occ.slotId,
+                    "vehicleNo": occ.vehicleNo,
+                    "startTime": occ.startTime.strftime('%Y-%m-%d %H:%M:%S'),
+                    "endTime": occ.endTime.strftime('%Y-%m-%d %H:%M:%S'),
+                    "price": occ.price
                 })
-            print(detailsList)
-            return jsonify(detailsList)
+
+        red.set(cache_key, json.dumps(detailsList), ex=30)
+        return jsonify(detailsList)
         
 class ApiBookSlot(Resource):
     @jwt_required()
@@ -546,7 +552,7 @@ class ApiBookSlot(Resource):
                 occupied_slot = OccupiedSlot(userId=user.userId,lotId=lotId,slotId=slot.slotId,vehicleNo=vehicleNo,price=price,startTime=start_dt,endTime=end_dt)
                 db.session.add(occupied_slot)
                 db.session.commit()
-                return {"message": f'Slot {slot.slotId} booked insuccessfully', 'success': True}, 200
+                return {"message": f'Slot {slot.slotId} booked successfully', 'success': True}, 200
 
         return {"message": 'No available slots'}, 200
     def delete(self):
@@ -559,7 +565,7 @@ class ApiBookSlot(Resource):
         db.session.add(slots)
         db.session.delete(occupied_slot)
         db.session.commit()
-        return {"message": f'Slot {slotId} in lot {lotId} deleted successfully'}, 200
+        return {"message": f'Slot {slotId} in lot {lotId} removed successfully'}, 200
     
 class ApiSendMail(Resource):
     @jwt_required()
@@ -598,89 +604,57 @@ class ApiSendMail(Resource):
         return "mail sent succesfilly"
              
 class ApiCharts(Resource):
-    def get(self,choice):
-        if choice=="user":
-            locations = Locations.query.all()
+    def get(self, choice):
+        locations = Locations.query.all()
+        bar_data = []
+        total_occupied = 0
+        total_non_occupied = 0
+        revenue_data = []
 
-            bar_data = []
-            total_occupied = 0
-            total_non_occupied = 0
+        for loc in locations:
+            lots = Lots.query.filter_by(location=loc.location).all()
+            loc_total = 0
+            loc_occupied = 0
+            loc_revenue = 0
 
-            for loc in locations:
-                lots = Lots.query.filter_by(location=loc.location).all()
-                loc_total = 0
-                loc_occupied = 0
+            for lot in lots:
+                slots = Slots.query.filter_by(lotId=lot.lotId).all()
+                loc_total += len(slots)
+                loc_occupied += sum(1 for slot in slots if slot.isOccupied)
 
-                for lot in lots:
-                    slots = Slots.query.filter_by(lotId=lot.lotId).all()
-                    loc_total += len(slots)
-                    loc_occupied += sum(1 for slot in slots if slot.isOccupied)
-
-                loc_non_occupied = loc_total - loc_occupied
-
-                bar_data.append({
-                    'location': loc.location,
-                    'occupied': loc_occupied,
-                    'non_occupied': loc_non_occupied
-                })
-
-                total_occupied += loc_occupied
-                total_non_occupied += loc_non_occupied
-
-            response = {
-                'bar_chart': bar_data,
-                'pie_chart': {
-                    'occupied': total_occupied,
-                    'non_occupied': total_non_occupied
-                }
-            }
-
-            return jsonify(response)
-        if choice=="admin":
-            locations = Locations.query.all()
-
-            bar_data = []
-            revenue_data = []
-            total_occupied = 0
-            total_non_occupied = 0
-
-            for loc in locations:
-                lots = Lots.query.filter_by(location=loc.location).all()
-                loc_total = 0
-                loc_occupied = 0
-                loc_revenue = 0
-
-                for lot in lots:
-                    slots = Slots.query.filter_by(lotId=lot.lotId).all()
-                    loc_total += len(slots)
-                    loc_occupied += sum(1 for slot in slots if slot.isOccupied)
-
-                    # Calculate revenue from OccupiedSlot
+                if choice == "admin":
                     occupied = OccupiedSlot.query.filter_by(lotId=lot.lotId).all()
                     loc_revenue += sum(item.price for item in occupied)
 
-                bar_data.append({
-                    'location': loc.location,
-                    'occupied': loc_occupied,
-                    'non_occupied': loc_total - loc_occupied
-                })
+            loc_non_occupied = loc_total - loc_occupied
 
+            bar_data.append({
+                'location': loc.location,
+                'occupied': loc_occupied,
+                'non_occupied': loc_non_occupied
+            })
+
+            total_occupied += loc_occupied
+            total_non_occupied += loc_non_occupied
+
+            if choice == "admin":
                 revenue_data.append({
                     'location': loc.location,
                     'revenue': round(loc_revenue, 2)
                 })
 
-                total_occupied += loc_occupied
-                total_non_occupied += loc_total - loc_occupied
+        response = {
+            'bar_chart': bar_data,
+            'pie_chart': {
+                'occupied': total_occupied,
+                'non_occupied': total_non_occupied
+            }
+        }
 
-            return jsonify({
-                'bar_chart': bar_data,
-                'pie_chart': {
-                    'occupied': total_occupied,
-                    'non_occupied': total_non_occupied
-                },
-                'revenue_chart': revenue_data
-            })
+        if choice == "admin":
+            response['revenue_chart'] = revenue_data
+
+        return jsonify(response)
 
 
 

@@ -35,9 +35,23 @@
           <input v-model="pincode" type="text" id="pincode" class="form-control w-75" placeholder="---Enter pincode---" />
         </div>
       </div>
+
+      <div class="row mb-3">
+        <label class="col-4 text-end col-form-label" for="maxSlot">Max Slot</label>
+        <div class="col-8">
+          <input v-model="maxSlot" type="text" id="maxSlot" class="form-control w-75" placeholder="---Enter maxSlot---" />
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <label class="col-4 text-end col-form-label" for="price">Price</label>
+        <div class="col-8">
+          <input v-model="price" type="text" id="price" class="form-control w-75" placeholder="---Enter price---" />
+        </div>
+      </div>
     </form>
 
-    <div class="text-center" v-html="msg"></div>
+    <div class="text-center" >{{ msg }}</div>
 
     <div class="text-center">
       <button @click="addLocation" class="btn btn-dark">Add Location</button>
@@ -47,32 +61,26 @@
 
 <script>
 import logoutMixin from '@/mixin/logoutMixin.js'
+import authMixin from '@/mixin/authMixin.js'
 export default{
-    mixins:[logoutMixin],
+    mixins:[logoutMixin,authMixin],
     data(){
         return{
-            location:'',msg:'',
+            location:'',msg:'',lotId:'',
             address:'',
             pincode:'',
+            maxSlot:'',
+            price:'',
             isAdmin:false,
         }
     },
     methods:{
         async addLocation(){
             try {
-                const res = await fetch('http://localhost:5000/api/location', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        location: this.location,
-                        address: this.address,
-                        pincode: this.pincode,
-                       
-                    })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.msg);
-                this.msg = 'Location added successfully<br>Redirecting in 2 seconds...';
+                const token = localStorage.getItem('token');
+                const response=await this.request('http://localhost:5000/api/location',"POST",{'location':this.location,'address':this.address,'pincode':this.pincode,'price':this.price,'maxSlot':this.maxSlot})
+                this.msg = `${response.message}    Redirecting in 2 seconds...`;
+                const res=await this.request(`http://localhost:5000/api/sendMail`,"POST",{"choice":"createLot","price":this.price,"location":this.location,"lotId":response.lotId,"maxSlots":this.maxSlots})
                 setTimeout(() => {
                     this.$router.back();
                 }, 2000); 

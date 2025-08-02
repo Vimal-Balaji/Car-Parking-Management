@@ -30,8 +30,15 @@
     <div v-if="Object.keys(slotDict).length > 0">
         <h2 class="text-center mt-3">Available Slots</h2>
         <div v-for="(slots, lot) in slotDict" :key="lot" class="mb-4 p-3 border rounded bg-light">
-          <h4 class="mb-3">{{ lot }}:</h4> <button class="btn flex-fill" data-bs-toggle="modal" data-bs-target="#LotModal" @click="viewLot(lot)">View/Edit Lot</button>
+          <h4 class="mb-3">{{ lot }}:</h4> 
+          <div v-if="selectedLoc!='all'">
+            <button class="btn flex-fill" data-bs-toggle="modal" data-bs-target="#LotModal" @click="viewLot(lot)">View/Edit Lot</button>
           <button class="btn  flex-fill" @click="deleteLot(lot)">Delete Lot</button>
+          </div>
+          <div v-else>
+             <button class="btn flex-fill" data-bs-toggle="modal" data-bs-target="#LotModal" @click="viewLot(lot)">View Lot</button>
+          </div>
+          
 
           <p class="d-flex mb-3">Available Slots:{{ slotDetails[lot][0] }}/{{ slotDetails[lot][1] }}</p>
           <div class="d-flex flex-wrap justify-content-start gap-2">
@@ -40,7 +47,7 @@
       </div>
     </div>
     
-    <div v-if="selectedLoc !== ''" class="d-flex justify-content-between gap-3 m-3">
+    <div v-if="selectedLoc != 'all' && selectedLoc!==''" class="d-flex justify-content-between gap-3 m-3">
         <button @click="deleteLocation" class="btn  flex-fill">Delete Location</button>
         <button class="btn flex-fill" data-bs-toggle="modal" data-bs-target="#editLocationModal" @click="viewLocation">View/Edit Location</button>
         <button class="btn flex-fill" data-bs-toggle="modal" data-bs-target="#addLotModal">Add Lot</button>
@@ -109,11 +116,19 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
 
-                  <div class="modal-body">
+                  <div v-if="selectedLoc!='all'" class="modal-body">
                     <p><strong>Lot ID:</strong> {{ Lot.lotId }}</p>
                     <input type="text" class="form-control mb-3" v-model="Lot.location" placeholder="Enter the location" />
                     <input type="text" class="form-control mb-3" v-model="Lot.maxSlots" placeholder="Enter max slots" />
                     <input type="text" class="form-control mb-3" v-model="Lot.price" placeholder="Enter the price" />
+                  </div>
+                  <div v-else class="modal-body">
+                    <p><strong>Lot ID:</strong> {{ Lot.lotId }}</p>
+                    <p><strong>Location:</strong> {{ Lot.location }}</p>
+                    <p><strong>Max Slots:</strong> {{ Lot.maxSlots }}</p>
+                    <p><strong>Price:</strong> {{ Lot.price }}</p>
+                    <p><strong>Address:</strong>{{ Lot.address }}</p>
+                    <p><strong>Pincode:</strong>{{ Lot.pincode }}</p>
                   </div>
                   <div class="text-center">{{ LotMsg }}</div>
                   <div class="modal-footer">
@@ -144,7 +159,7 @@
                       <span v-if="!Slot.isOccupied">No</span>
                       <button v-else class="btn btn-danger btn-sm" @click="toggleButton">Yes</button>
                     </p></div>
-                    <div v-if="show">
+                    <div v-if="show" >
                       <p><strong>User ID:</strong> {{ Slot.userId }}</p>
                       <p><strong>Start Time:</strong> {{ Slot.startTime }}</p>
                       <p><strong>End Time:</strong> {{ Slot.endTime }}</p>
@@ -179,7 +194,7 @@ export default {
     isAdmin: false,
     show:false,
     locations: [],
-    selectedLoc: '',
+    selectedLoc: 'all',
     selectedLot: '',
     slotDict: {},
     slotDetails: {},
@@ -198,6 +213,8 @@ export default {
       maxSlots:'',
       price:'',
       lotId:'',
+      address:'',
+      pincode:'',
     },
     Slot:{
       lotId:'',
@@ -267,6 +284,8 @@ export default {
         this.Lot.maxSlots = data.maxSlots;
         this.Lot.price = data.price;
         this.Lot.lotId = data.lotId;
+        this.Lot.address = data.address;
+        this.Lot.pincode = data.pincode;
       } catch (err) {
         console.error('Error fetching lot:', err);
         this.LotMsg = 'Failed to fetch lot';
@@ -398,6 +417,7 @@ export default {
     try {
     const response = await this.request('/api/location');
     this.locations = response.location || [];
+    await this.fetchSlots();
     await this.fetchDashboard();
   } catch (error) {
     console.error('Initialization error:', error);

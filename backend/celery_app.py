@@ -14,6 +14,6 @@ apps.conf.timezone = 'Asia/Kolkata'
 apps.conf.beat_schedule = {
     'monthly-report': {
         'task': 'celery_tasks.send_email',
-        'schedule': crontab(minute=5, hour=22, day_of_month=29),
+        'schedule': crontab(minute=56, hour=21, day_of_month=30),
     }
 }
