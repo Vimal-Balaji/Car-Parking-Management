@@ -47,7 +47,7 @@ export default {
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.message)
-
+    console.log(data)
     // Store token and user data
     localStorage.setItem('token', data.access_token)
     localStorage.setItem('isAdmin', data.user.isAdmin)

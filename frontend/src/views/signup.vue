@@ -22,6 +22,7 @@
       <button class="btn btn-dark" @click="signup"> Sign Up</button>
       </div>
       <div class="signup-link">Already have an account? <router-link to="/login">Login now</router-link></div>
+      <p class="text-center mt-3">{{ message }}</p>
     </form>
   </div>
 </template>
@@ -33,12 +34,14 @@ export default {
       name: '',
       email: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      message:''
     };
   },
   methods: {
     
     async signup() {
+      const res='';
       try {
         if (this.password !== this.confirmPassword) {
         alert("Passwords do not match");
@@ -64,7 +67,7 @@ export default {
         else 
             {this.message=`${data.message}`;}
       } catch (err) {
-        this.message = `${err.message}`;
+        this.message = `${data.message}`;
       }
     }
   }
