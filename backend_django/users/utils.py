@@ -42,4 +42,20 @@ def get_auth_admin(request):
         print("invalis")
         return None, Response({'error': 'Invalid token'}, status=status.HTTP_200_UNAUTHORIZED)
 
-# def get_auth_user(request):
+def get_auth_user(request):
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return None, Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    try:
+        token = auth_header.split(' ')[1]
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+
+        if User.objects.filter(email=payload.get('email')).exists:
+            return payload, True
+        else:
+            return None, False
+
+    except jwt.InvalidTokenError:
+        print("invalis")
+        return None, Response({'error': 'Invalid token'}, status=status.HTTP_200_UNAUTHORIZED)
